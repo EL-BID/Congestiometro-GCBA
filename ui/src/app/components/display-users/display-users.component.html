@@ -1,0 +1,97 @@
+<div fxLayout="column" fxLayoutGap="1em" style="padding: 1em">
+  <mat-form-field>
+    <mat-label>Buscar Operadores por usuario, nombre o apellido</mat-label>
+    <input #search matInput (keyup)="onKeyUp($event)" />
+    <button *ngIf="search.value" matSuffix mat-icon-button (click)="clearSearch()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <div *ngIf="dataSource$ | async as dataSource" style="overflow: auto">
+    <table mat-table [dataSource]="dataSource" multiTemplateDataRows style="width: 100%">
+      <ng-container *ngFor="let col of columns" [matColumnDef]="col.field">
+        <th mat-header-cell *matHeaderCellDef style="padding-top: 1.5em">{{ col.title }}</th>
+        <td mat-cell *matCellDef="let element" [ngSwitch]="col.pipe" style="vertical-align: middle">
+          <span *ngSwitchCase="'role'" [matTooltip]="element.isAdmin ? 'Admin' : 'Usuario'">
+            <mat-icon style="color: grey">{{ element.isAdmin ? "admin_panel_settings" : "person" }}</mat-icon>
+          </span>
+          <span *ngSwitchCase="'options'" fxLayout="row wrap" fxLayoutAlign="end center">
+            <ng-container *ngIf="!element.isAdmin">
+              <app-button-icon icon="edit" tooltip="Editar" color="primary" (click)="selectedUser.next(element)">
+              </app-button-icon>
+              <!-- <app-button-icon
+                icon="delete"
+                tooltip="Eliminar Usuario"
+                color="primary"
+                [disabled]="loading"
+                (click)="deleteUser(element.username)"
+              >
+              </app-button-icon> -->
+            </ng-container>
+          </span>
+
+          <span *ngSwitchDefault> {{ element[col.field] }} </span>
+        </td>
+      </ng-container>
+
+      <ng-container *ngIf="selectedUsername | async as username" matColumnDef="expandedDetail">
+        <td
+          mat-cell
+          *matCellDef="let element"
+          [attr.colspan]="displayedColumns.length"
+          [ngStyle]="{
+            'border-width': username === element.username ? '' : '0',
+            display: username === element.username ? '' : 'none'
+          }"
+          [@detailExpand]="username === element.username ? 'expanded' : 'collapsed'"
+        >
+          <form
+            [formGroup]="editUserForm"
+            fxLayout="row"
+            fxLayout.lt-md="column"
+            fxLayoutGap="1em"
+            style="overflow: hidden; padding-top: 1em"
+          >
+            <mat-form-field appearance="fill" fxFlex.gt-sm="auto">
+              <mat-label>Contraseña</mat-label>
+              <input matInput formControlName="password" placeholder="Contraseña" />
+              <mat-error>Campo requerido</mat-error>
+            </mat-form-field>
+
+            <div fxLayout="row" fxLayoutAlign="space-evenly center" fxLayoutGap="1em" style="padding-bottom: 1em">
+              <button mat-flat-button color="warn" (click)="selectedUser.next()" fxFlex.lt-md="auto">
+                Cancelar
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="editUser(username, editUserForm.value.password)"
+                [disabled]="!editUserForm.valid && (loading | async)"
+                fxFlex.lt-md="auto"
+              >
+                {{ (loading | async) ? "Editando usuario..." : "Guardar" }}
+              </button>
+            </div>
+          </form>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" style="height: 0"></tr>
+
+      <tr *matNoDataRow>
+        <td class="mat-body-2" colspan="4">
+          <div fxLayout="column" fxLayoutAlign="center center" style="color: grey; padding: 2em">
+            <mat-icon>assignment_ind</mat-icon>
+            <span>No hay Usuarios</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <mat-paginator
+    [fxHide]="(dataSource$ | async)?.data?.length === 0"
+    [pageSizeOptions]="pageSizeOptions"
+  ></mat-paginator>
+</div>

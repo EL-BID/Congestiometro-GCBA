@@ -1,0 +1,11 @@
+.grid {
+  display: grid;
+  grid-gap: 1em;
+  grid-template-rows: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, 32%);
+  justify-content: center;
+}
+
+::ng-deep .no-border-top .mat-form-field-infix {
+  border-top: 0 !important;
+}

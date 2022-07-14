@@ -1,0 +1,151 @@
+query lines {
+  jam_lines {
+    street_id
+    line_id
+    line
+  }
+}
+
+query streets {
+  streets {
+    street_id
+    street_type
+    street_name
+    street_sufix
+    line
+  }
+}
+
+query admin_levels {
+  admin_levels {
+    greater_admin_level_id
+    greater_admin_level_name
+    lower_admin_level_id
+    lower_admin_level_name
+    lines_ids
+    streets_ids
+    shape
+    last_update
+  }
+}
+
+query jams(
+  $date_from: timestamp
+  $date_to: timestamp
+  $hours: _int4
+  $lines: _int4
+  $aggFunc: String
+  $working_days: _int4
+) {
+  get_jams_lines(
+    args: {
+      date_from: $date_from
+      date_to: $date_to
+      hours: $hours
+      lines: $lines
+      agg_func: $aggFunc
+      working_days: $working_days
+    }
+  ) {
+    line_id
+    level
+  }
+}
+query evolutivo(
+  $date_from: timestamp
+  $date_to: timestamp
+  $hours: _int4
+  $lines: _int4
+  $metric: String
+  $aggFunc: String
+  $working_days: _int4
+) {
+  get_evolutivo(
+    args: {
+      date_from: $date_from
+      date_to: $date_to
+      hours: $hours
+      lines: $lines
+      metric: $metric
+      agg_func: $aggFunc
+      working_days: $working_days
+    }
+  ) {
+    index
+    val
+  }
+}
+
+query comparativo(
+  $date_from: timestamp
+  $date_to: timestamp
+  $hours: _int4
+  $lines: _int4
+  $metric: String
+  $aggFunc: String
+  $working_days: _int4
+) {
+  get_comparativo(
+    args: {
+      date_from: $date_from
+      date_to: $date_to
+      hours: $hours
+      lines: $lines
+      metric: $metric
+      agg_func: $aggFunc
+      working_days: $working_days
+    }
+  ) {
+    year
+    month
+    val
+  }
+}
+
+query summary(
+  $date_from: timestamp
+  $date_to: timestamp
+  $hours: _int4
+  $lines: _int4
+  $aggFunc: String
+  $working_days: _int4
+) {
+  get_summary(
+    args: {
+      date_from: $date_from
+      date_to: $date_to
+      hours: $hours
+      lines: $lines
+      agg_func: $aggFunc
+      working_days: $working_days
+    }
+  ) {
+    index
+    val
+  }
+}
+
+query predictivo(
+  $date_from: timestamp
+  $date_to: timestamp
+  $hours: _int4
+  $lines: _int4
+  $metric: String
+  $aggFunc: String
+  $working_days: _int4
+) {
+  get_predictivo(
+    args: {
+      date_from: $date_from
+      date_to: $date_to
+      hours: $hours
+      lines: $lines
+      metric: $metric
+      agg_func: $aggFunc
+      working_days: $working_days
+    }
+  ) {
+    index
+    val
+  }
+}

@@ -1,0 +1,18 @@
+:80 {
+  root * /var/www
+  route {
+    handle /graphql/* {
+      uri strip_prefix /graphql
+      reverse_proxy graphql-engine:8080
+    }
+    handle /auth/* {
+      uri strip_prefix /auth
+      reverse_proxy admin:8888
+    }
+    handle /predict {
+      reverse_proxy model:6001
+    }
+    try_files {path} {path}/ /index.html?{query}
+    file_server
+  }
+}

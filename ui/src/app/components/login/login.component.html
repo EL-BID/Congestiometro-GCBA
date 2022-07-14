@@ -1,0 +1,60 @@
+<div fxLayout="column" fxLayoutAlign="start center" style="padding-top: 10vh">
+  <mat-card style="width: 20em">
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="login(loginForm.value.username, loginForm.value.password)"
+      fxLayout="column"
+      fxLayoutGap="10px"
+      id="login-form"
+    >
+      <mat-form-field>
+        <input matInput formControlName="username" placeholder="Usuario" type="text" required />
+        <mat-error *ngIf="!loginForm.controls['username'].valid && loginForm.controls['username'].touched">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <input
+          matInput
+          formControlName="password"
+          placeholder="Contraseña"
+          [type]="showPassword ? 'text' : 'password'"
+          required
+        />
+        <mat-icon style="cursor: pointer" matSuffix (click)="showPassword = !showPassword">
+          {{ showPassword ? "visibility" : "visibility_off" }}
+        </mat-icon>
+        <mat-error *ngIf="!loginForm.controls['password'].valid && loginForm.controls['password'].touched">
+          Este campo es requerido
+        </mat-error>
+      </mat-form-field>
+      <button
+        mat-raised-button
+        type="button"
+        color="primary"
+        [disabled]="true"
+        *ngIf="loading | async; else entrar"
+      >
+        <mat-icon>
+          <mat-spinner diameter="30"></mat-spinner>
+        </mat-icon>
+      </button>
+      <ng-template #entrar>
+        <button mat-raised-button type="submit" color="primary" [disabled]="loginForm.invalid">Entrar</button>
+      </ng-template>
+    </form>
+  </mat-card>
+  <mat-card
+    *ngIf="errorMessage | async as msg"
+    fxLayout="row"
+    fxLayoutAlign="center center"
+    class="error"
+    style="margin-top: 2em"
+  >
+    <span>{{ msg }}</span>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="errorMessage.next('')">
+      <mat-icon aria-label="close">close</mat-icon>
+    </button>
+  </mat-card>
+</div>

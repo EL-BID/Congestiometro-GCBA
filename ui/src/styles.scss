@@ -1,0 +1,132 @@
+@import "~@angular/material/theming";
+@include mat-core();
+
+$primary-colors: (
+  50: #fffbe6,
+  100: #fff4c0,
+  200: #ffed97,
+  300: #ffe66d,
+  400: #ffe04d,
+  500: #ffdb2e,
+  600: #ffd729,
+  700: #ffd223,
+  800: #ffcd1d,
+  900: #ffc412,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #000000,
+    600: #000000,
+    700: #000000,
+    800: #000000,
+    900: #000000,
+  ),
+);
+
+$accent-colors: (
+  A100: #a6a6a6,
+  A200: #8c8c8c,
+  A400: #737373,
+  A700: #666666,
+  contrast: (
+    A100: #000000,
+    A200: #ffffff,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
+);
+
+$warn-colors: $mat-red;
+
+$webapp-primary: mat-palette($primary-colors);
+$webapp-accent: mat-palette($accent-colors, A200, A100, A400);
+
+// The warn palette is optional (defaults to red).
+$webapp-warn: mat-palette($mat-red);
+
+// Create the theme object (a Sass map containing all of the palettes).
+$webapp-theme: mat-light-theme($webapp-primary, $webapp-accent, $webapp-warn);
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include angular-material-theme($webapp-theme);
+
+/* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+  width: 100vw;
+  overflow-x: hidden;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+router-outlet + * {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.error {
+  background-color: mat-color($webapp-warn, 900);
+  color: mat-contrast($webapp-warn, 900);
+}
+
+::-webkit-scrollbar {
+  width: 0.4em;
+  height: 0.4em;
+  background-color: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #b1b1b1;
+}
+
+::-moz-scrollbar {
+  width: 0.4em;
+  height: 0.4em;
+  background-color: #f5f5f5;
+}
+::-moz-scrollbar-thumb {
+  background-color: #b1b1b1;
+}
+
+::selection {
+  background: mat-color($webapp-primary, 500) !important;
+  color: mat-contrast($webapp-primary, 500) !important;
+}
+
+.selectable-table .mat-row:not(.expandable-row) {
+  cursor: pointer;
+  transition: background-color 0.5s, text-shadow 0.5s;
+}
+
+.selectable-table .mat-row:not(.expandable-row):hover {
+  text-shadow: 0 0 0.65px #333, 0 0 0.65px #333;
+  background-color: mat-color($webapp-primary, 100);
+  color: mat-contrast($webapp-primary, 100);
+}
+
+.selectable-table > * > tr.expandable-row {
+  height: 0;
+}
+
+.scroll {
+  overflow-y: scroll;
+  flex: 1 1 0;
+}
+
+.no-margin-bottom {
+  margin-bottom: 0;
+}
+
+.max-height-100 {
+  max-height: 100%;
+}

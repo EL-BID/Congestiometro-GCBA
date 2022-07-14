@@ -1,0 +1,323 @@
+<button mat-raised-button [matMenuTriggerFor]="filterMenu" color="accent">
+  <ng-content></ng-content>
+</button>
+<mat-menu #filterMenu="matMenu">
+  <button mat-menu-item [matMenuTriggerFor]="chartsMenu">Tipo</button>
+  <button mat-menu-item (click)="show.next(true)">Mostrar Filtro</button>
+  <button *ngIf="data | async as state" mat-menu-item (click)="clone(state.otherState)">
+    Clonar filtro {{ secondary ? "izquierdo" : "derecho" }}
+  </button>
+  <button
+    *ngIf="exportableData | async as data"
+    mat-menu-item
+    [disabled]="data.csvData.length === 0"
+    (click)="download(data)"
+  >
+    Descargar datos
+  </button>
+</mat-menu>
+
+<mat-menu #chartsMenu="matMenu">
+  <ng-container *ngFor="let chart of charts">
+    <button mat-menu-item *ngIf="chart.comparable || !secondary" (click)="changeChartType(chart.id)">
+      {{ chart.name }}
+    </button>
+  </ng-container>
+</mat-menu>
+
+<div [fxShow]="show$ | async">
+  <div id="backdrop"></div>
+  <div fxLayout="column" fxLayoutAlign="center center" id="dialog-wrapper">
+    <mat-card *ngIf="data | async as state" fxLayout="column">
+      <mat-card-content fxLayout="row" fxLayout.lt-lg="column" style="padding: 1em; overflow-y: auto">
+        <form
+          [formGroup]="state.form"
+          fxLayout="column"
+          fxLayoutGap="1em"
+          fxFlex="1 0 50"
+          ngStyle.gt-md="overflow-y: auto; padding-right: 1em;"
+        >
+          <div class="mat-title">Editar filtros del gráfico {{ secondary ? "derecho" : "izquierdo" }}</div>
+          <div class="mat-subheading-2">Filtros temporales</div>
+          <div fxLayout="row" fxLayoutAlign="center" fxLayoutGap="0.5em">
+            <button
+              *ngIf="secondary"
+              mat-icon-button
+              (click)="state.syncParams.dateStart = !state.syncParams.dateStart"
+              class="little-fab"
+              [matTooltip]="state.syncParams.dateStart ? 'Sincronizado' : 'No sincronizado'"
+            >
+              <mat-icon [color]="state.syncParams.dateStart ? 'primary' : ''">
+                {{ state.syncParams.dateStart ? "sync" : "sync_disabled" }}
+              </mat-icon>
+            </button>
+            <mat-form-field appearance="fill" fxFlex="auto">
+              <mat-label>Fechas</mat-label>
+              <mat-date-range-input
+                [rangePicker]="dateOne"
+                [max]="maxDate | async"
+                [disabled]="state.syncParams.dateStart"
+              >
+                <input matStartDate placeholder="Desde" formControlName="dateStart" />
+                <input matEndDate placeholder="hasta" formControlName="dateEnd" />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matSuffix [for]="dateOne"></mat-datepicker-toggle>
+              <mat-date-range-picker #dateOne></mat-date-range-picker>
+            </mat-form-field>
+          </div>
+
+          <mat-radio-group formControlName="workingDays" fxLayout="row wrap" fxLayoutGap="1em">
+            <mat-radio-button [value]="'{1,0}'">Todos los días</mat-radio-button>
+            <mat-radio-button [value]="'{1}'">Días hábiles</mat-radio-button>
+            <mat-radio-button [value]="'{0}'">Feriados y fines de semana</mat-radio-button>
+          </mat-radio-group>
+
+          <div fxLayout="row" fxLayoutAlign=" center" fxLayoutGap="0.5em">
+            <button
+              *ngIf="secondary"
+              mat-icon-button
+              (click)="state.syncParams.hours = !state.syncParams.hours"
+              class="little-fab"
+              [matTooltip]="state.syncParams.hours ? 'Sincronizado' : 'No sincronizado'"
+            >
+              <mat-icon [color]="state.syncParams.hours ? 'primary' : ''">
+                {{ state.syncParams.hours ? "sync" : "sync_disabled" }}
+              </mat-icon>
+            </button>
+            <mat-form-field appearance="fill" fxFlex="auto">
+              <mat-label>Horas</mat-label>
+              <mat-select formControlName="hours" multiple [disabled]="state.syncParams.hours">
+                <mat-option *ngFor="let hour of hours" [value]="hour.value">{{ hour.view }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-checkbox
+              (change)="state.form.controls.hours.setValue($event.checked ? hoursIds : [])"
+              [checked]="state.form.value.hours.length === hours.length"
+              [indeterminate]="state.form.value.hours.length > 0 && state.form.value.hours.length < hours.length"
+              [disabled]="state.syncParams.hours"
+            >
+              Todas las horas
+            </mat-checkbox>
+          </div>
+
+          <div fxLayout="row" fxLayoutAlign=" center" fxLayoutGap="1em">
+            <div class="mat-subheading-2 no-margin-bottom">Filtros geográficos</div>
+            <button
+              *ngIf="secondary"
+              mat-icon-button
+              (click)="state.syncParams.neighborhoods = !state.syncParams.neighborhoods"
+              class="little-fab"
+              [matTooltip]="state.syncParams.neighborhoods ? 'Sincronizado' : 'No sincronizado'"
+            >
+              <mat-icon [color]="state.syncParams.neighborhoods ? 'primary' : ''">{{
+                state.syncParams.neighborhoods ? "sync" : "sync_disabled"
+              }}</mat-icon>
+            </button>
+          </div>
+
+          <div fxLayout="column" fxLayoutGap="2em">
+            <div fxLayout="row" fxLayoutAlign=" center" fxLayoutGap="1em" fxFlex.gt-sm="auto">
+              <mat-form-field appearance="fill" fxFlex="auto">
+                <mat-label>Barrio</mat-label>
+                <mat-select formControlName="neighborhoods" multiple [disabled]="state.syncParams.neighborhoods">
+                  <mat-select-trigger *ngIf="state.form.value.neighborhoods.length > 0">
+                    {{ state.form.value.neighborhoods.length }} barrios seleccionados
+                  </mat-select-trigger>
+                  <div *ngFor="let adminLevel2 of groupedNeighborhoods | async" fxLayout="row">
+                    <mat-checkbox
+                      (change)="
+                        setSelectedNeighborhoods(
+                          state.form.controls.neighborhoods,
+                          $event.checked,
+                          state.form.value.neighborhoods,
+                          adminLevel2.neighborhoodIds
+                        )
+                      "
+                      [checked]="allSelected(state.form.value.neighborhoods, adminLevel2.neighborhoods)"
+                      [indeterminate]="someSelected(state.form.value.neighborhoods, adminLevel2.neighborhoods)"
+                      class="mat-optgroup-label"
+                    ></mat-checkbox>
+                    <mat-optgroup [label]="adminLevel2.label | titlecase" fxFlex="auto">
+                      <mat-option
+                        *ngFor="let neighborhood of adminLevel2.neighborhoods"
+                        [value]="neighborhood.lowerAdminLevelId"
+                      >
+                        {{ neighborhood.lowerAdminLevelName | titlecase }}
+                      </mat-option>
+                    </mat-optgroup>
+                  </div>
+                </mat-select>
+              </mat-form-field>
+              <mat-checkbox
+                (change)="state.form.controls.neighborhoods.setValue($event.checked ? state.neighborhoodsIds : [])"
+                [checked]="state.form.value.neighborhoods.length === state.neighborhoodsIds.length"
+                [indeterminate]="
+                  state.form.value.neighborhoods.length > 0 &&
+                  state.form.value.neighborhoods.length < state.neighborhoodsIds.length
+                "
+                [disabled]="state.syncParams.neighborhoods"
+              >
+                Todos los barrios
+              </mat-checkbox>
+            </div>
+
+            <div fxLayout="row" fxLayoutAlign="start start" fxLayoutGap="1em">
+              <mat-slide-toggle
+                formControlName="autoSelectStreets"
+                color="primary"
+                [disabled]="state.syncParams.neighborhoods"
+              >
+                Autoseleccionar calles
+              </mat-slide-toggle>
+              <mat-slide-toggle
+                formControlName="autoSelectAvenues"
+                color="primary"
+                [disabled]="state.syncParams.neighborhoods"
+              >
+                Autoseleccionar avenidas
+              </mat-slide-toggle>
+            </div>
+
+            <div fxLayout="column">
+              <div fxLayout="row" fxLayoutAlign=" center" fxLayoutGap="0.5em">
+                <mat-form-field appearance="fill" fxFlex="auto">
+                  <mat-label>Calle</mat-label>
+                  <input
+                    placeholder="Calle"
+                    #streetInput
+                    matInput
+                    [formControl]="streetSearch"
+                    [matAutocomplete]="auto"
+                  />
+                </mat-form-field>
+                <mat-autocomplete #auto="matAutocomplete">
+                  <mat-option *ngFor="let street of filteredStreets | async" [value]="street.id">
+                    <div
+                      (click)="
+                        selectedStreets.has(street.id)
+                          ? selectedStreets.delete(street.id)
+                          : selectedStreets.set(street.id, street.name);
+                        $event.stopPropagation()
+                      "
+                    >
+                      <mat-checkbox
+                        #streetCheckbox
+                        color="primary"
+                        [checked]="selectedStreets.has(street.id)"
+                        (change)="streetCheckbox.writeValue(selectedStreets.has(street.id))"
+                        style="width: 100%"
+                      >
+                        {{ street.name | titlecase }}
+                      </mat-checkbox>
+                    </div>
+                  </mat-option>
+
+                  <div *ngIf="(streetInput.value || '').length < 4" style="text-align: center; margin: 0.5em">
+                    Escriba 4 caracteres o más para buscar
+                  </div>
+
+                  <mat-expansion-panel style="position: sticky; top: 0; bottom: 0.5em; margin: 0.5em">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>Seleccionadas ({{ selectedStreets.size }})</mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div
+                      *ngIf="selectedStreets.size === 0; else selected"
+                      fxLayout="row"
+                      fxLayoutAlign="center center"
+                    >
+                      No hay seleccionadas
+                    </div>
+                    <ng-template #selected>
+                      <mat-option *ngFor="let street of selectedStreets | keyvalue" [value]="street.key">
+                        <div
+                          (click)="
+                            selectedStreets.has(street.key)
+                              ? selectedStreets.delete(street.key)
+                              : selectedStreets.set(street.key, street.value);
+                            $event.stopPropagation()
+                          "
+                        >
+                          <mat-checkbox
+                            color="primary"
+                            [checked]="selectedStreets.has(street.key)"
+                            style="width: 100%"
+                          >
+                            {{ street.value | titlecase }}
+                          </mat-checkbox>
+                        </div>
+                      </mat-option>
+                    </ng-template>
+                  </mat-expansion-panel>
+                </mat-autocomplete>
+              </div>
+
+              <div *ngIf="selectedStreets.size > 0">
+                <strong>Calles seleccionadas:</strong> {{ selectedStreets.size }}
+              </div>
+            </div>
+          </div>
+
+          <div fxLayout="row" fxLayoutAlign=" center" fxLayoutGap="1em">
+            <div class="mat-subheading-2 no-margin-bottom">Métricas y agregaciones</div>
+            <button
+              *ngIf="secondary"
+              mat-icon-button
+              (click)="state.syncParams.metric = !state.syncParams.metric"
+              class="little-fab"
+              [matTooltip]="state.syncParams.metric ? 'Sincronizado' : 'No sincronizado'"
+            >
+              <mat-icon [color]="state.syncParams.metric ? 'primary' : ''">{{
+                state.syncParams.metric ? "sync" : "sync_disabled"
+              }}</mat-icon>
+            </button>
+          </div>
+          <div fxLayout="row" fxLayoutAlign.gt-sm="center center" fxLayout.lt-md="column" fxLayoutGap="1em">
+            <mat-form-field appearance="fill" fxFlex.gt-sm="auto">
+              <mat-label>Métrica</mat-label>
+              <mat-select formControlName="metric" [disabled]="state.syncParams.metric">
+                <mat-option *ngFor="let metric of metrics" [value]="metric.id">{{ metric.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" fxFlex.gt-sm="auto">
+              <mat-label>Agregado</mat-label>
+              <mat-select formControlName="aggFunc" [disabled]="state.syncParams.metric">
+                <mat-option *ngFor="let func of aggFuncs" [value]="func.id">{{ func.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </form>
+
+        <div fxLayout="column" fxFlex="1 0 50">
+          <div
+            [id]="(secondary ? 'r' : 'l') + '-filter-map'"
+            fxFlex="auto"
+            ngStyle.gt-md="padding-left: 1em"
+            ngStyle.lt-lg="padding-top: 2em"
+          >
+            <div style="position: relative; z-index: 1">
+              <div style="position: absolute; top: 1em; right: 1em">
+                <button mat-flat-button color="warn" (click)="mapPolygon.next([]); draw.abortDrawing()">
+                  Borrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions fxLayout="row" fxLayoutAlign="end center">
+        <button mat-raised-button color="warn" (click)="show.next(false)">Cancelar</button>
+        <button
+          *ngIf="mapPolygon | async as polygon"
+          mat-raised-button
+          color="primary"
+          [disabled]="state.form.invalid"
+          (click)="apply(state.form.value, state.syncParams, state.otherState, polygon)"
+          fxFlex="1 0 auto"
+        >
+          Aplicar
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

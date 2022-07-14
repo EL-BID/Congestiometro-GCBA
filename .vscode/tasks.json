@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Iniciar",
+      "dependsOn": ["serve:backend", "serve:ui", "serve:codegen"]
+    },
+    {
+      "label": "Terminar Backend",
+      "type": "docker-compose",
+      "dockerCompose": {
+        "down": { "removeVolumes": true },
+        "files": ["${workspaceFolder}/docker-compose.yml", "${workspaceFolder}/docker-compose.debug.yml"]
+      }
+    },
+    {
+      "label": "serve:backend",
+      "type": "docker-compose",
+      "dockerCompose": {
+        "up": {},
+        "files": ["${workspaceFolder}/docker-compose.yml", "${workspaceFolder}/docker-compose.debug.yml"]
+      }
+    },
+    {
+      "label": "serve:ui",
+      "type": "shell",
+      "command": "npm --prefix ./ui run serve"
+    },
+    {
+      "label": "serve:codegen",
+      "type": "shell",
+      "command": "npm --prefix ./ui run codegen"
+    }
+  ]
+}

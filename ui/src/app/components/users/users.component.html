@@ -1,0 +1,52 @@
+<div fxLayout="column" fxLayoutGap="1em" style="padding: 1em">
+  <ng-container *ngIf="(userService.currentUser | async)?.isAdmin; else notAllowed">
+    <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="1em">
+      <app-button-icon tooltip="Volver" icon="arrow_back" (clickEvent)="cancel.emit()"></app-button-icon>
+      <div class="mat-headline no-margin-bottom">Administración de Usuarios</div>
+      <button
+        *ngIf="!(creatingNewUser | async)"
+        mat-mini-fab
+        color="primary"
+        matTooltip="Crear nuevo"
+        matTooltipClass="tooltip"
+        (click)="creatingNewUser.next(true)"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    <form *ngIf="creatingNewUser | async" [formGroup]="form" fxLayout="column" fxLayoutGap="1em">
+      <div fxLayout="row" fxLayout.lt-md="column" fxLayoutGap="1em">
+        <mat-form-field fxFlex.gt-sm="auto">
+          <input matInput formControlName="username" placeholder="Nombre de Usuario" />
+          <mat-error>Campo requerido</mat-error>
+        </mat-form-field>
+
+        <mat-form-field fxFlex.gt-sm="auto">
+          <input matInput formControlName="password" placeholder="Contraseña" />
+          <mat-error>Campo requerido</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div fxLayout="row" fxLayoutAlign="space-evenly center" fxLayoutGap="1em" style="padding-top: 1em">
+        <button mat-flat-button color="warn" (click)="creatingNewUser.next(false)">Cancelar</button>
+        <ng-container *ngIf="validForm | async as validF">
+          <button (click)="createUser(form.value)" mat-flat-button color="primary" [disabled]="!validF.valid">
+            {{ (loading | async) ? "Creando usuario..." : "Crear usuario y continuar" }}
+          </button>
+        </ng-container>
+      </div>
+
+      <mat-divider></mat-divider>
+    </form>
+
+    <app-display-users [users]="users" fxLayout="column" fxFlex="auto"></app-display-users>
+  </ng-container>
+
+  <ng-template #notAllowed>
+    <div fxLayoutAlign="center center" fxLayout="column">
+      <strong class="mat-title">No tienes los permisos necesarios</strong>
+      <a mat-flat-button color="primary" (clickEvent)="cancel.emit()">Volver a la página principal</a>
+    </div>
+  </ng-template>
+</div>

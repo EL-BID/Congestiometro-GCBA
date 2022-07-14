@@ -1,0 +1,21 @@
+<button
+  mat-icon-button
+  [matTooltip]="tooltip"
+  [matTooltipPosition]="tooltipPosition"
+  [disabled]="disabled | async"
+  (mouseenter)="hover = true"
+  (mouseleave)="hover = false"
+  [ngStyle]="{ color: 'grey', '-webkit-transition': 'color 0.5s', transition: 'color 0.5s' }"
+  type="button"
+  (click)="clickEvent.emit($event)"
+>
+  <mat-icon
+    *ngIf="!isImg"
+    [ngStyle]="{ 'font-size': sizeIcon }"
+    [attr.aria-label]="tooltip"
+    [color]="hover === true ? color : undefined"
+  >
+    {{ icon }}
+  </mat-icon>
+  <img *ngIf="isImg" [src]="icon" alt="{{ tooltip }}" [ngStyle]="{ height: sizeImg, position: 'relative' }" />
+</button>

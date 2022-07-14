@@ -1,0 +1,31 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "auth module for congestiometro",
+  "main": "./lib/index.js",
+  "scripts": {
+    "serve": "nodemon",
+    "start": "tsc && node ./lib/index.js"
+  },
+  "author": "Rafael Crescenzi",
+  "license": "ISC",
+  "dependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/express": "^4.17.13",
+    "@types/node": "^15.14.9",
+    "@types/pg": "^8.6.1",
+    "axios": "^0.27.2",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.19.0",
+    "chokidar": "^3.5.3",
+    "cookie-parser": "^1.4.5",
+    "dayjs": "^1.10.6",
+    "express": "^4.17.1",
+    "njwt": "^1.1.0",
+    "nodemon": "^2.0.12",
+    "pg": "^8.7.1",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.2"
+  }
+}

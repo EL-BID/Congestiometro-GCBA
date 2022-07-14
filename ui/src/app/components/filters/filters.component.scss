@@ -1,0 +1,43 @@
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-underline {
+  bottom: 0;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+#backdrop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  opacity: 0.5;
+  z-index: 2;
+}
+
+#dialog-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+}
+
+.mat-card {
+  background: #f5f7f9;
+  overflow-x: hidden;
+  width: 90%;
+  max-height: 99vh;
+}
+
+::ng-deep ul {
+  list-style: initial;
+  padding-left: 2em;
+}
+
+.mat-card-title-group {
+  display: block;
+}

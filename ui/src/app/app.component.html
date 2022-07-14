@@ -1,0 +1,325 @@
+<div
+  *ngIf="userService.currentUser | async as user; else login"
+  fxLayout="column"
+  style="height: 100vh; width: 100vw"
+>
+  <ng-container *ngIf="dataService.ready | async; else loading">
+    <mat-toolbar role="toolbar" color="primary" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="1em">
+      <img src="/assets/logo-w.png" alt="escudo ciudad de buenos aires" style="height: 75%" />
+      <span style="color: white">Congestiómetro</span>
+      <div fxLayout="row" fxLayoutAlign="space-between center center" fxLayoutGap="1em" fxFlex="1 0 auto">
+        <ng-container *ngIf="leftChart | async as chartType">
+          <app-filters [exportableData]="leftExportableData">
+            <span>Cambiar gráfico<span *ngIf="compare | async"> izquierdo</span></span>
+          </app-filters>
+        </ng-container>
+
+        <mat-slide-toggle
+          *ngIf="comparableChart | async"
+          [checked]="compare | async"
+          (change)="toggleCompare($event.checked)"
+        >
+          <span class="mat-subheading-1">Usar comparativa</span>
+        </mat-slide-toggle>
+
+        <app-filters [exportableData]="rightExportableData" [secondary]="true" [fxShow]="compare | async" fxHide>
+          Cambiar gráfico derecho
+        </app-filters>
+        <button mat-icon-button [matMenuTriggerFor]="menuLink">
+          <mat-icon>menu</mat-icon>
+        </button>
+      </div>
+      <mat-menu #menuLink="matMenu">
+        <button *ngIf="(userService.currentUser | async)?.isAdmin" mat-menu-item (click)="resetFilters()">
+          <mat-icon>delete</mat-icon>
+          Borrar Filtros
+        </button>
+        <button *ngIf="(userService.currentUser | async)?.isAdmin" mat-menu-item (click)="toggleUsers(true)">
+          <mat-icon>people</mat-icon>
+          Administrar Usuarios
+        </button>
+        <button mat-menu-item (click)="userService.logout()">
+          <mat-icon>logout</mat-icon>
+          Cerrar sesión
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <app-users *ngIf="showUsers | async" (cancel)="toggleUsers(false)"></app-users>
+    <div *ngIf="!(showUsers | async)" fxLayout="row" fxFlex="1 0 auto" style="margin: 1em">
+      <div
+        *ngIf="dataService.leftData | async as data; else noFilter"
+        fxLayout="column"
+        [fxFlex]="(compare | async) ? '1 1 50' : '1 0 auto'"
+      >
+        <div
+          *ngIf="leftFilter | async as filters"
+          fxLayout="row"
+          fxLayoutAlign=" center"
+          fxLayoutGap="1em"
+          class="mat-subheading-2"
+        >
+          <span>
+            Mostrando {{ filters.metric?.name }} {{ filters.aggFunc?.name }}
+            <ng-container *ngIf="(leftChart | async)?.id !== 'line'">
+              del {{ filters.dateStart | date: "shortDate" }} al {{ filters.dateEnd | date: "shortDate" }} |
+              <span *ngIf="filters.hours?.length === 24">Las 24 horas</span>
+              <span *ngIf="(filters.hours?.length || 0) < 24">Horas: {{ getHoursString(filters.hours) }}</span>
+            </ng-container>
+          </span>
+
+          <ng-container *ngIf="(leftChart | async)?.id == 'line'">
+            <ng-container *ngIf="dataService.leftData | async as data">
+              <mat-form-field
+                *ngIf="selectedComparativeCharts$ | async as selected"
+                appearance="fill"
+                class="no-border-top"
+                fxFlex="auto"
+              >
+                <mat-chip-list #chipList>
+                  <mat-chip
+                    *ngFor="let chart of selected"
+                    (removed)="toggleComparativeChart('delete', chart, selected)"
+                  >
+                    <span>{{ chart }}</span>
+                    <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                  </mat-chip>
+                  <input
+                    #streetInput
+                    matInput
+                    placeholder="Calles"
+                    [formControl]="comparativeStreetSearch"
+                    [matAutocomplete]="auto"
+                    [matChipInputFor]="chipList"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                  />
+                </mat-chip-list>
+                <mat-autocomplete
+                  #auto="matAutocomplete"
+                  (optionSelected)="toggleComparativeChart('add', $event.option.value, selected, streetInput)"
+                >
+                  <mat-option *ngFor="let streetName of selectableComparativeCharts | async" [value]="streetName">
+                    {{ streetName }}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </ng-container>
+
+            <mat-form-field appearance="fill">
+              <mat-label>Año Mayor</mat-label>
+              <mat-select
+                *ngIf="initialGreaterDate | async as date"
+                [value]="date"
+                (selectionChange)="selectLineYear($event.value)"
+                disableOptionCentering
+              >
+                <mat-option *ngFor="let year of years" [value]="year">{{ year }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-slide-toggle [checked]="sameMaximum | async" (change)="sameMaximum.next($event.checked)">
+              <span class="mat-subheading-1">Igualar máximos</span>
+            </mat-slide-toggle>
+          </ng-container>
+        </div>
+
+        <ng-container *ngIf="(leftChart | async)?.id == 'map'">
+          <ng-container *ngIf="leftMap | async as mapData">
+            <ng-container *ngIf="mapData.lines | async as lines; else loadingData">
+              <app-map
+                *ngIf="lines.length > 0; else noEvents"
+                [data]="leftMap"
+                [redraw]="compare"
+                fxFlex="1 0 auto"
+              >
+              </app-map>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+
+        <ng-container *ngIf="(leftChart | async)?.id == 'bar'">
+          <ng-container *ngIf="data.bar.data | async as barData; else loadingData">
+            <ng-container *ngIf="leftBarConfig | async as config">
+              <div *ngIf="!(data.bar.noEvents | async); else noEvents" fxFlex="1 0 auto">
+                <canvas
+                  baseChart
+                  [datasets]="barData.dataset"
+                  [labels]="barData.labels"
+                  [options]="config.options"
+                  [colors]="config.colors"
+                  chartType="bar"
+                  [legend]="showLabels(barData.dataset)"
+                >
+                </canvas>
+              </div>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+
+        <div *ngIf="(leftChart | async)?.id == 'line'" class="grid" fxFlex="1 1 auto">
+          <ng-container *ngIf="comparativeConfig | async as config">
+            <ng-container *ngFor="let dataset of comparativeCharts | async">
+              <div *ngIf="dataset.data | async as dataInfo; else loadingData">
+                <h3 style="text-align: center">{{ dataset.name | titlecase }}</h3>
+                <canvas
+                  #chart
+                  baseChart
+                  [datasets]="dataInfo.dataset"
+                  [labels]="dataInfo.labels"
+                  [options]="config.options"
+                  [colors]="config.colors"
+                  chartType="line"
+                  [legend]="showLabels(dataInfo.dataset)"
+                >
+                </canvas>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+
+        <ng-container *ngIf="(leftChart | async)?.id == 'line-with-map'">
+          <ng-container *ngIf="data['line-with-map'].data | async as lineWithMapData; else loadingData">
+            <div *ngIf="!(data['line-with-map'].noEvents | async); else noEvents" fxLayout="row" fxFlex="1 0 auto">
+              <div fxFlex="50">
+                <canvas
+                  *ngIf="lineWithMapDataConfig | async as config"
+                  baseChart
+                  [datasets]="lineWithMapData.dataset"
+                  [labels]="lineWithMapData.labels"
+                  [options]="config.options"
+                  [colors]="config.colors"
+                  chartType="line"
+                  [legend]="showLabels(lineWithMapData.dataset)"
+                >
+                </canvas>
+              </div>
+              <div fxFlex="50">
+                <app-vector-map></app-vector-map>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <ng-container *ngIf="compare | async">
+        <!-- TODO: USAR EL TEMPLATE DE noEvents ADEMAS -->
+        <ng-container *ngIf="dataService.rightData | async as data; else noFilter">
+          <div
+            *ngIf="mapDifferences | async as differences"
+            fxLayout="column"
+            fxLayoutAlign=" center"
+            fxLayoutGap="1em"
+            fxFlex="1 0 20"
+          >
+            <div class="mat-title"><strong>Comparativa</strong></div>
+            <mat-divider></mat-divider>
+            <ng-container *ngFor="let difference of differences">
+              <div class="mat-subheading-2">
+                <strong>{{ difference.label | titlecase }}</strong>
+                <span *ngIf="difference.type === 'speed'">
+                  ({{
+                    (difference.difference >= 0 ? difference.difference : -1 * difference.difference) || 0
+                      | percent: "1.0-0"
+                  }})</span
+                >
+                <span *ngIf="difference.type !== 'speed'">
+                  ({{ difference.difference || 0 | percent: "1.0-0" }})</span
+                >
+              </div>
+              <div>
+                <canvas
+                  baseChart
+                  [datasets]="[{ data: [difference.difference] }]"
+                  [labels]="[difference.label]"
+                  [options]="comparisonOptions"
+                  [colors]="[{ backgroundColor: 'rgb(154 208 245)' }]"
+                  chartType="horizontalBar"
+                  [legend]="false"
+                >
+                </canvas>
+              </div>
+            </ng-container>
+          </div>
+          <div fxLayout="column" fxFlex="1 1 50">
+            <div *ngIf="rightFilter | async as filters" class="mat-subheading-2">
+              Mostrando {{ filters.metric?.name }} {{ filters.aggFunc?.name }} del
+              {{ filters.dateStart | date: "shortDate" }} al {{ filters.dateEnd | date: "shortDate" }} |
+              <span *ngIf="filters.hours?.length === 24">Las 24 horas</span>
+              <span *ngIf="(filters.hours?.length || 0) < 24"> Horas: {{ getHoursString(filters.hours) }} </span>
+            </div>
+
+            <ng-container *ngIf="(rightChart | async)?.id == 'map'">
+              <ng-container *ngIf="rightMap | async as mapData">
+                <ng-container *ngIf="mapData.lines | async as lines; else loadingData">
+                  <app-map
+                    *ngIf="lines.length > 0; else noEvents"
+                    [data]="rightMap"
+                    [redraw]="compare"
+                    boxSide="left"
+                    fxFlex="1 0 auto"
+                  >
+                  </app-map>
+                </ng-container>
+              </ng-container>
+            </ng-container>
+
+            <ng-container *ngIf="(rightChart | async)?.id == 'bar'">
+              <ng-container *ngIf="data.bar.data | async as barData; else loadingData">
+                <ng-container *ngIf="rightBarConfig | async as config">
+                  <div *ngIf="!(data.bar.noEvents | async); else noEvents" fxFlex="1 0 auto">
+                    <canvas
+                      baseChart
+                      [datasets]="barData.dataset"
+                      [labels]="barData.labels"
+                      [options]="config.options"
+                      [colors]="config.colors"
+                      chartType="bar"
+                      [legend]="showLabels(barData.dataset)"
+                    >
+                    </canvas>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+      </ng-container>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loading>
+  <mat-toolbar fxLayout="column" color="primary" fxLayoutAlign="center center" style="height: 100vh; width: 100vw">
+    <img src="/assets/logo-w.png" alt="escudo ciudad de buenos aire" style="height: 15%; margin-bottom: 2em" />
+    <div>Bienvenido al congestiómetro de la Ciudad de Buenos aires</div>
+    <div>Estamos cargando los datos necesarios, esta operación puede demorar unos segundos</div>
+    <div style="margin-top: 5em">{{ dataService.dataState | async }}</div>
+  </mat-toolbar>
+</ng-template>
+
+<ng-template #login>
+  <mat-toolbar role="toolbar" color="primary" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="1em">
+    <img src="/assets/logo-w.png" alt="escudo ciudad de buenos aires" style="height: 75%" />
+    <span style="color: white">Congestiómetro</span>
+  </mat-toolbar>
+  <app-login></app-login>
+</ng-template>
+
+<ng-template #noFilter>
+  <div style="padding-top: 10vh; text-align: center" class="mat-title" fxFlex="1 0 50">
+    Por favor, seleccione al menos una calle, un barrio o un polígono en el filtro
+  </div>
+</ng-template>
+
+<ng-template #noEvents>
+  <div style="padding-top: 10vh; text-align: center" class="mat-title" fxFlex="1 0 50">
+    No hay eventos para los filtros seleccionados
+  </div>
+</ng-template>
+
+<ng-template #loadingData>
+  <div fxLayout="column" fxLayoutAlign="center center">
+    <mat-spinner color="primary"></mat-spinner>
+    <div class="mat-subheading-2">Cargando...</div>
+  </div>
+</ng-template>

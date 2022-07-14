@@ -1,0 +1,25 @@
+{
+  "git.rebaseWhenSync": true,
+  "editor.formatOnSave": true,
+  "cSpell.diagnosticLevel": "Hint",
+  "cSpell.language": "en,es",
+  "cSpell.words": ["Congestiómetro"],
+  "rest-client.followredirect": false,
+  "editor.rulers": [115],
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "congestiometro",
+      "password": "congestiometro",
+      "username": "postgres",
+      "database": "postgres"
+    }
+  ],
+  "taskExplorer.showFavoritesButton": false,
+  "taskExplorer.showLastTasks": false,
+  "task.autoDetect": "off",
+  "python.formatting.provider": "black"
+}

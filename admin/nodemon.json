@@ -1,0 +1,7 @@
+{
+  "ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules"],
+  "watch": ["."],
+  "exec": "ts-node index.ts",
+  "ext": "ts",
+  "legacyWatch": true
+}

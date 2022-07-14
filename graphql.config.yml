@@ -1,0 +1,15 @@
+overwrite: true
+schema:
+  - http://localhost/graphql/v1/graphql:
+      headers:
+        Authorization: ${ADMIN_SECRET:-congestiometro}
+documents: "src/app/services/queries.graphql"
+generates:
+  src/app/services/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+  graphql.schema.json:
+    plugins:
+      - "introspection"

@@ -1,0 +1,9 @@
+::ng-deep mat-chip {
+  padding: 0 0.4em !important;
+  min-height: 1.5em !important;
+  border-radius: 0.5em !important;
+}
+
+::ng-deep .mat-chip-list-wrapper {
+  flex-wrap: unset !important;
+}
