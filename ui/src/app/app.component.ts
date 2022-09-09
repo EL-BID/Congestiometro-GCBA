@@ -16,6 +16,7 @@ import {
   startWith,
   switchMap,
   take,
+  tap,
 } from 'rxjs/operators';
 
 import { UserService } from './services/user.service';
@@ -128,22 +129,39 @@ export class AppComponent implements AfterViewInit {
     },
   };
 
-  public leftBarConfig = this.dataService.leftData.pipe(
+  private leftBarData = this.dataService.leftData.pipe(
     filter(isValid),
     switchMap(({ bar }) => bar.data),
-    map(({ dataset, labels, unit }) => ({
-      options: this.getOptions('bar', dataset.length, !isNaN(Number(labels[0])), unit),
+    shareReplay(1)
+  );
+  private rightBarData = this.dataService.rightData.pipe(
+    filter(isValid),
+    switchMap(({ bar }) => bar.data),
+    shareReplay(1)
+  );
+  public barSameMaximum = new BehaviorSubject(false);
+  public barMaximum = combineLatest([this.leftBarData, this.rightBarData, this.barSameMaximum]).pipe(
+    map(([leftBarData, rightBarData, sameMaximum]) =>
+      sameMaximum
+        ? Math.max(...[leftBarData, rightBarData].map(({ dataset }) => dataset.map((v) => v.data).flat()).flat())
+        : undefined
+    ),
+    startWith(undefined)
+  );
+  public leftBarConfig = combineLatest([this.leftBarData, this.barMaximum]).pipe(
+    map(([{ dataset, labels, unit }, barMaximum]) => ({
+      options: this.getOptions('bar', dataset.length, !isNaN(Number(labels[0])), unit, barMaximum),
       colors: this.getColors('bar', dataset.length),
     }))
   );
-  public rightBarConfig = this.dataService.rightData.pipe(
-    filter(isValid),
-    switchMap(({ bar }) => bar.data),
-    map(({ dataset, labels, unit }) => ({
-      options: this.getOptions('bar', dataset.length, !isNaN(Number(labels[0])), unit),
+  public rightBarConfig = combineLatest([this.rightBarData, this.barMaximum]).pipe(
+    tap(() => console.log(2)),
+    map(([{ dataset, labels, unit }, barMaximum]) => ({
+      options: this.getOptions('bar', dataset.length, !isNaN(Number(labels[0])), unit, barMaximum),
       colors: this.getColors('bar', dataset.length),
     }))
   );
+
   public lineWithMapDataConfig = this.dataService.leftData.pipe(
     filter(isValid),
     switchMap((x) => x['line-with-map'].data),
@@ -195,12 +213,12 @@ export class AppComponent implements AfterViewInit {
   );
   // FIXME: Dynamic minimum year
   public years = range(new Date().getFullYear() + 1 - 2021).map((v) => new Date().getFullYear() - v);
-  public sameMaximum = new BehaviorSubject(false);
+  public comparativeSameMaximum = new BehaviorSubject(false);
   public comparativeConfig = this.comparativeCharts.pipe(
     filter(isValid),
     filter((charts) => charts.length > 0),
     switchMap((charts) =>
-      combineLatest([combineLatest(charts.map((a) => a.data)), this.sameMaximum]).pipe(
+      combineLatest([combineLatest(charts.map((a) => a.data)), this.comparativeSameMaximum]).pipe(
         map(([datasets, sameMaximum]) => {
           const { labels, unit } = datasets[0];
           const max = sameMaximum

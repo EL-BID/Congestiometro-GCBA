@@ -46,6 +46,7 @@
     </mat-toolbar>
 
     <app-users *ngIf="showUsers | async" (cancel)="toggleUsers(false)"></app-users>
+
     <div *ngIf="!(showUsers | async)" fxLayout="row" fxFlex="1 0 auto" style="margin: 1em">
       <div
         *ngIf="dataService.leftData | async as data; else noFilter"
@@ -67,6 +68,16 @@
               <span *ngIf="(filters.hours?.length || 0) < 24">Horas: {{ getHoursString(filters.hours) }}</span>
             </ng-container>
           </span>
+
+          <div
+            *ngIf="(leftChart | async)?.id == 'bar' && (rightChart | async)?.id == 'bar'"
+            style="margin: 1em 1em 0 1em; text-align: right"
+            fxFlex="1 0 auto"
+          >
+            <mat-slide-toggle [checked]="barSameMaximum | async" (change)="barSameMaximum.next($event.checked)">
+              <span class="mat-subheading-1">Igualar máximos</span>
+            </mat-slide-toggle>
+          </div>
 
           <ng-container *ngIf="(leftChart | async)?.id == 'line'">
             <ng-container *ngIf="dataService.leftData | async as data">
@@ -117,7 +128,10 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-slide-toggle [checked]="sameMaximum | async" (change)="sameMaximum.next($event.checked)">
+            <mat-slide-toggle
+              [checked]="comparativeSameMaximum | async"
+              (change)="comparativeSameMaximum.next($event.checked)"
+            >
               <span class="mat-subheading-1">Igualar máximos</span>
             </mat-slide-toggle>
           </ng-container>
@@ -241,7 +255,7 @@
             </ng-container>
           </div>
           <div fxLayout="column" fxFlex="1 1 50">
-            <div *ngIf="rightFilter | async as filters" class="mat-subheading-2">
+            <div *ngIf="rightFilter | async as filters" class="mat-subheading-2" style="text-align: right">
               Mostrando {{ filters.metric?.name }} {{ filters.aggFunc?.name }} del
               {{ filters.dateStart | date: "shortDate" }} al {{ filters.dateEnd | date: "shortDate" }} |
               <span *ngIf="filters.hours?.length === 24">Las 24 horas</span>
