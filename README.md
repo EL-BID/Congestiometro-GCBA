@@ -43,7 +43,7 @@
 
 ## Introducción
 
-Esta herramienta tiene por objeto mejorar la gestión de la movilidad de las ciudades, tomando como punt ode partida la experiencia de Ciudad de Buenos Aires en base a datos masivos de Waze.
+Esta herramienta tiene por objeto mejorar la gestión de la movilidad de las ciudades, tomando como punto de partida la experiencia de Ciudad de Buenos Aires en base a datos masivos de Waze.
 
 Con ella se pretende poder detectar anomalías e incidentes en el tránsito en tiempo real, identificar puntos críticos en la red para implementación de obras y políticas públicas relacionadas a la movilidad y evaluar su impacto. Predecir el comportamiento del tránsito de acuerdo con parámetros dinámicamente establecidos; todo ello con una herramienta de código abierto y sin licenciamientos pagos.
 
