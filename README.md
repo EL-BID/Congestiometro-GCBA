@@ -1,7 +1,9 @@
 # Congestiómetro
+
 ![analytics image (flat)](https://raw.githubusercontent.com/vitr/google-analytics-beacon/master/static/badge-flat.gif)
 ![analytics](https://www.google-analytics.com/collect?v=1&cid=555&t=pageview&ec=repo&ea=open&dp=/Congestiometro-GCBA/readme&dt=&tid=UA-4677001-16)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=EL-BID_Congestiometro-GCBA&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=EL-BID_Congestiometro-GCBA)
+
 <p align="center">
   <a target="_blank" rel="noopener noreferrer">
     <img width="100%" src="docs/logo.png" alt="congestiómetro" />
@@ -57,7 +59,6 @@ Con ella se pretende poder detectar anomalías e incidentes en el tránsito en t
 6. Visualización individual o dual de mapa o gráfico de barras con las métricas seleccionas
 7. Visualización comparativa de los últimos dos años por corredor seleccionado
 8. Visualización de predicciones y su comparación contra el historico real.
-9.
 
 ## Stack Tecnológico
 
@@ -71,6 +72,8 @@ Con ella se pretende poder detectar anomalías e incidentes en el tránsito en t
 
 ---
 
+La arquitectura del sistema está basada en el uso de contenedores, particularmente de Docker, que permite su ejecusión en virtualemnte cualquier sistema de hardware que tenga las especificaciones suficientes para tolerar la necesidades de procesamiento y lectura de dátos rápida que tiene la aplicación. Para más información sobre Docker, puede recurirse a su documentación.
+
 - [Docker](https://docs.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/#compose-documentation)
 
@@ -79,6 +82,8 @@ Con ella se pretende poder detectar anomalías e incidentes en el tránsito en t
 ### Microservicios
 
 ---
+
+Dentro del sistema de contenedores, la aplicación fue diseñada con microservicios, cada uno de los cuales tiene una responsabilidad asignada. Los componentes utilizados fueron:
 
 1. Web server y proxy inverso:
    - [Caddy](https://caddyserver.com/docs/)
