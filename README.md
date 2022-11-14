@@ -58,7 +58,7 @@ Con ella se pretende poder detectar anomalías e incidentes en el tránsito en t
 5. Funciones de agregación o reducción: media, máximo y último
 6. Visualización individual o dual de mapa o gráfico de barras con las métricas seleccionas
 7. Visualización comparativa de los últimos dos años por corredor seleccionado
-8. Visualización de predicciones y su comparación contra el historico real.
+8. Visualización de predicciones y su comparación contra el histórico real.
 
 ## Stack Tecnológico
 
@@ -72,7 +72,7 @@ Con ella se pretende poder detectar anomalías e incidentes en el tránsito en t
 
 ---
 
-La arquitectura del sistema está basada en el uso de contenedores, particularmente de Docker, que permite su ejecusión en virtualemnte cualquier sistema de hardware que tenga las especificaciones suficientes para tolerar la necesidades de procesamiento y lectura de dátos rápida que tiene la aplicación. Para más información sobre Docker, puede recurirse a su documentación.
+La arquitectura del sistema está basada en el uso de contenedores, particularmente de Docker, que permite su ejecusión en virtualmente cualquier sistema de hardware que tenga las especificaciones suficientes para tolerar la necesidades de procesamiento y lectura de dátos rápida que tiene la aplicación. Para más información sobre Docker, puede recurirse a su documentación.
 
 - [Docker](https://docs.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/#compose-documentation)

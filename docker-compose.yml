@@ -61,15 +61,28 @@ services:
     working_dir: /src
     command: >
       sh -c "gunicorn --bind 0.0.0.0:6001 --workers 1 --threads 1 --timeout 0 main:app"
+  build-ui:
+    image: node:16-alpine
+    volumes:
+      - ./ui:/src
+      - dist:/dist
+    working_dir: /src
+    restart: "no"
+    command: >
+      sh -c "npm i && npm run build"
   caddy:
     image: caddy/caddy
     depends_on:
-      - "ETL"
+      build-ui:
+        condition: service_completed_successfully
     restart: always
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./ui/dist:/var/www
       - ./.caddy:/root/.caddy
+      - dist:/var/www
+
+volumes:
+  dist:
