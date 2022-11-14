@@ -1,66 +1,66 @@
 version: "3.6"
 services:
-  postgres:
-    image: postgis/postgis:14-3.1-alpine
-    shm_size: 1g
-    restart: always
-    volumes:
-      - ./database/data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-      - ./database/postgresql.conf:/tmp/postgresql.conf
-      - ./database/update.conf.sh:/docker-entrypoint-initdb.d/_update.conf.sh
-    environment:
-      POSTGRES_PASSWORD: ${ADMIN_SECRET:-congestiometro}
-  admin:
-    image: node:16-alpine
-    depends_on:
-      - "postgres"
-    restart: always
-    volumes:
-      - ./admin:/src
-      - ./config:/config
-    working_dir: /src
-    environment:
-      PGHOST: postgres
-      PGPORT: 5432
-      PGDATABASE: postgres
-      PGUSER: postgres
-      PGPASSWORD: congestiometro
-      ADMIN_SECRET: ${ADMIN_SECRET:-congestiometro}
-    command: >
-      sh -c "npm i && npm start"
-  graphql-engine:
-    image: hasura/graphql-engine:v2.0.10
-    depends_on:
-      - "admin"
-    restart: always
-    environment:
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:congestiometro@postgres:5432/postgres
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:congestiometro@postgres:5432/postgres
-      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
-      HASURA_GRAPHQL_DEV_MODE: "false"
-      HASURA_GRAPHQL_NO_OF_RETRIES: 5
-      HASURA_GRAPHQL_ADMIN_SECRET: ${ADMIN_SECRET:-congestiometro}
-      HASURA_GRAPHQL_AUTH_HOOK: http://admin:8888/hasura
-  ETL:
-    image: etl
-    build: ${ETL_DOCKER_CONTEXT:-./ETL}
-    depends_on:
-      - "postgres"
-    restart: always
-    env_file:
-      - "${ETL_ENVIRONMENT_FILE:-./ETL/.env}"
-  model:
-    image: model
-    build: ./model
-    depends_on:
-      - "ETL"
-    restart: always
-    volumes:
-      - ./model:/src
-    working_dir: /src
-    command: >
-      sh -c "gunicorn --bind 0.0.0.0:6001 --workers 1 --threads 1 --timeout 0 main:app"
+  # postgres:
+  #   image: postgis/postgis:14-3.1-alpine
+  #   shm_size: 1g
+  #   restart: always
+  #   volumes:
+  #     - ./database/data:/var/lib/postgresql/data
+  #     - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+  #     - ./database/postgresql.conf:/tmp/postgresql.conf
+  #     - ./database/update.conf.sh:/docker-entrypoint-initdb.d/_update.conf.sh
+  #   environment:
+  #     POSTGRES_PASSWORD: ${ADMIN_SECRET:-congestiometro}
+  # admin:
+  #   image: node:16-alpine
+  #   depends_on:
+  #     - "postgres"
+  #   restart: always
+  #   volumes:
+  #     - ./admin:/src
+  #     - ./config:/config
+  #   working_dir: /src
+  #   environment:
+  #     PGHOST: postgres
+  #     PGPORT: 5432
+  #     PGDATABASE: postgres
+  #     PGUSER: postgres
+  #     PGPASSWORD: congestiometro
+  #     ADMIN_SECRET: ${ADMIN_SECRET:-congestiometro}
+  #   command: >
+  #     sh -c "npm i && npm start"
+  # graphql-engine:
+  #   image: hasura/graphql-engine:v2.0.10
+  #   depends_on:
+  #     - "admin"
+  #   restart: always
+  #   environment:
+  #     HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:congestiometro@postgres:5432/postgres
+  #     HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:congestiometro@postgres:5432/postgres
+  #     HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+  #     HASURA_GRAPHQL_DEV_MODE: "false"
+  #     HASURA_GRAPHQL_NO_OF_RETRIES: 5
+  #     HASURA_GRAPHQL_ADMIN_SECRET: ${ADMIN_SECRET:-congestiometro}
+  #     HASURA_GRAPHQL_AUTH_HOOK: http://admin:8888/hasura
+  # ETL:
+  #   image: etl
+  #   build: ${ETL_DOCKER_CONTEXT:-./ETL}
+  #   depends_on:
+  #     - "postgres"
+  #   restart: always
+  #   env_file:
+  #     - "${ETL_ENVIRONMENT_FILE:-./ETL/.env}"
+  # model:
+  #   image: model
+  #   build: ./model
+  #   depends_on:
+  #     - "ETL"
+  #   restart: always
+  #   volumes:
+  #     - ./model:/src
+  #   working_dir: /src
+  #   command: >
+  #     sh -c "gunicorn --bind 0.0.0.0:6001 --workers 1 --threads 1 --timeout 0 main:app"
   build-ui:
     image: node:16-alpine
     volumes:
@@ -82,7 +82,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./.caddy:/root/.caddy
-      - dist:/var/www
+      - dist:/var
 
 volumes:
   dist:

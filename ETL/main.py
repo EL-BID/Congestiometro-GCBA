@@ -350,23 +350,26 @@ if lines.shape[0] < 1:
                 )
         except:
             continue
-    total_rows = len(rows)
-    print(f"{datetime.now()}: Have {len(rows)} rows for initial db load")
-    buffer = StringIO()
-    writer = csv.writer(buffer)
-    for uuid in list(rows.keys()):
-        writer.writerow(rows[uuid])
-        del rows[uuid]
-    print(
-        f"{datetime.now()}: Executing insert of {total_rows} rows. Initial iterator yielded {i + 1}"
-    )
-    with postgres_conn.cursor() as cursor:
-        buffer.seek(0)
-        cursor.copy_from(buffer, "jams", sep=",")
-        postgres_conn.commit()
-    print(f"{datetime.now()}: Initial db load done.")
-    del buffer
-    gc.collect()
+    try:
+        total_rows = len(rows)
+        print(f"{datetime.now()}: Have {len(rows)} rows for initial db load")
+        buffer = StringIO()
+        writer = csv.writer(buffer)
+        for uuid in list(rows.keys()):
+            writer.writerow(rows[uuid])
+            del rows[uuid]
+        print(
+            f"{datetime.now()}: Executing insert of {total_rows} rows. Initial iterator yielded {i + 1}"
+        )
+        with postgres_conn.cursor() as cursor:
+            buffer.seek(0)
+            cursor.copy_from(buffer, "jams", sep=",")
+            postgres_conn.commit()
+        print(f"{datetime.now()}: Initial db load done.")
+        del buffer
+        gc.collect()
+    except:
+        pass
 
 f"{datetime.now()}: Starting live update..."
 with open("./sql/posgis_insert.sql") as insert_query:
