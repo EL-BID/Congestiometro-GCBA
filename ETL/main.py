@@ -123,10 +123,10 @@ if lines.shape[0] < 1:
             "shape",
             "last_update",
         ]
-    ].to_csv(buffer, header=False, index=False)
+    ].to_csv(buffer, header=False, index=False, sep="\t")
     buffer.seek(0)
     with postgres_conn.cursor() as cursor:
-        cursor.copy_from(buffer, "admin_levels", sep=",")
+        cursor.copy_from(buffer, "admin_levels")
         postgres_conn.commit()
 
     print(f"{datetime.now()}: Getting lines")
@@ -144,7 +144,7 @@ if lines.shape[0] < 1:
 
     buffer = StringIO()
     lines[["street_base_name", "line", "street_type"]].to_csv(
-        buffer, header=False, index=False
+        buffer, header=False, index=False, sep="\t"
     )
     buffer.seek(0)
     print(f"{datetime.now()}: Filtering lines")
@@ -159,7 +159,7 @@ if lines.shape[0] < 1:
         )
         """
         )
-        cursor.copy_from(buffer, "temp_jam_lines", sep=",")
+        cursor.copy_from(buffer, "temp_jam_lines")
         postgres_conn.commit()
 
         poly = pd.read_sql(
@@ -206,7 +206,7 @@ if lines.shape[0] < 1:
     lines["last_update"] = datetime.now()
 
     buffer = StringIO()
-    lines[["street_id", "line"]].to_csv(buffer, header=False, index=False)
+    lines[["street_id", "line"]].to_csv(buffer, header=False, index=False, sep="\t")
     buffer.seek(0)
     print(f"{datetime.now()}: Processing streets")
     with postgres_conn.cursor() as cursor:
@@ -219,7 +219,7 @@ if lines.shape[0] < 1:
         )
         """
         )
-        cursor.copy_from(buffer, "temp_streets", sep=",")
+        cursor.copy_from(buffer, "temp_streets")
         cursor.execute(
             "SELECT street_id, ST_union(line) as line from public.temp_streets group by 1"
         )
@@ -253,20 +253,20 @@ if lines.shape[0] < 1:
             "line",
             "last_update",
         ]
-    ].to_csv(buffer, header=False, index=False)
+    ].to_csv(buffer, header=False, index=False, sep="\t")
     buffer.seek(0)
     with postgres_conn.cursor() as cursor:
-        cursor.copy_from(buffer, "streets", sep=",")
+        cursor.copy_from(buffer, "streets")
         postgres_conn.commit()
     del streets
 
     buffer = StringIO()
     lines[["line_id", "street_id", "line", "last_update"]].to_csv(
-        buffer, header=False, index=False
+        buffer, header=False, index=False, sep="\t"
     )
     buffer.seek(0)
     with postgres_conn.cursor() as cursor:
-        cursor.copy_from(buffer, "jam_lines", sep=",")
+        cursor.copy_from(buffer, "jam_lines")
         postgres_conn.commit()
 
     print(f"{datetime.now()}: Adding lines and streets to admin_levels")
@@ -354,7 +354,7 @@ if lines.shape[0] < 1:
         total_rows = len(rows)
         print(f"{datetime.now()}: Have {len(rows)} rows for initial db load")
         buffer = StringIO()
-        writer = csv.writer(buffer)
+        writer = csv.writer(buffer, delimiter="\t")
         for uuid in list(rows.keys()):
             writer.writerow(rows[uuid])
             del rows[uuid]
@@ -363,7 +363,7 @@ if lines.shape[0] < 1:
         )
         with postgres_conn.cursor() as cursor:
             buffer.seek(0)
-            cursor.copy_from(buffer, "jams", sep=",")
+            cursor.copy_from(buffer, "jams")
             postgres_conn.commit()
         print(f"{datetime.now()}: Initial db load done.")
         del buffer
