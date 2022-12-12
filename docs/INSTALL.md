@@ -44,6 +44,12 @@ chmod +x *.sh
    ./stop.sh
 ```
 
+7. La primera vez que se corre el sistema, luego de la sincronización de datos, es necesario correr
+
+```bash
+   ./reset.sh
+```
+
 ## Requisitos de hardware
 
 Los requisitos de hardware variarán seriamente dependiendo de la cantidad de información resguardada en la base de datos (por tiempo histórico de congestiones y tamañno de la ciudad) y la cantidad de usuarios simultaneos. Como refenrencia, para una ciudad como Buenos Aires, con casi 3 Millones de habitantes y otros tantos que ingresan diariamente, con dos años de historia y no más de 5 usuarios simultaneos, una máquina con 16 GB de RAM, 4 procesadores y disco SSD fue suficiente para que el sistema funcione rápidamente. Un dispositivo de lectura rápida, como SSD o NVMe es crítico para el debido funcionamiento del sistema, no habiéndose probado en soportes magnéticos.
